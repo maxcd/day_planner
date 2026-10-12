@@ -64,6 +64,14 @@ section h2 .count{margin-left:auto;font:600 .8rem var(--sans);color:var(--muted)
 section h2 .count.over{color:var(--warn)}
 #sec-big .dot{background:var(--big)} #sec-medium .dot{background:var(--med)} #sec-small .dot{background:var(--small)} #sec-later .dot{background:var(--muted)}
 
+#laterToggle{cursor:pointer;user-select:none;margin:-14px -14px 8px;padding:14px 14px 0;border-radius:14px}
+#laterToggle:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+#laterToggle .count{margin-left:auto}
+#laterToggle .chev{color:var(--muted);font-size:.9rem;transition:transform .2s;margin-left:6px}
+#sec-later.collapsed{padding-bottom:14px}
+#sec-later.collapsed #laterToggle{margin-bottom:0}
+#sec-later.collapsed .chev{transform:rotate(-90deg)}
+#sec-later.collapsed ul,#sec-later.collapsed form{display:none}
 ul{list-style:none;margin:0;padding:0}
 li{border-top:1px solid var(--line)}
 li:first-child{border-top:none}
@@ -128,7 +136,7 @@ footer input{display:none}
     <form class="add"><input placeholder="Add small task…" enterkeyhint="done"><button aria-label="Add">+</button></form>
   </section>
   <section id="sec-later" data-cat="later">
-    <h2><span class="dot"></span>Later <span class="hint">parked, not today</span><span class="count"></span></h2>
+    <h2 id="laterToggle" role="button" tabindex="0" aria-expanded="true"><span class="dot"></span>Later <span class="hint">parked, not today</span><span class="count"></span><span class="chev" aria-hidden="true">▾</span></h2>
     <ul></ul>
     <form class="add"><input placeholder="Park something for later…" enterkeyhint="done"><button aria-label="Add">+</button></form>
   </section>
@@ -319,6 +327,23 @@ document.querySelectorAll('section').forEach(sec => {
     sec.querySelector('.add input').focus();
   };
 });
+
+/* ---------- fold / unfold the Later list (remembered in this browser) ---------- */
+const UI_KEY = 'dayplan.ui';
+function setLaterOpen(open) {
+  document.getElementById('sec-later').classList.toggle('collapsed', !open);
+  document.getElementById('laterToggle').setAttribute('aria-expanded', open);
+  try { localStorage.setItem(UI_KEY, JSON.stringify({ laterOpen: open })); } catch (e) {}
+}
+(() => {
+  let open = true;
+  try { const ui = JSON.parse(localStorage.getItem(UI_KEY)); if (ui && ui.laterOpen === false) open = false; } catch (e) {}
+  setLaterOpen(open);
+  const t = document.getElementById('laterToggle');
+  const flip = () => setLaterOpen(document.getElementById('sec-later').classList.contains('collapsed'));
+  t.onclick = flip;
+  t.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } };
+})();
 
 /* ---------- navigation ---------- */
 document.getElementById('prev').onclick = () => { cur = shift(cur, -1); render(); };
