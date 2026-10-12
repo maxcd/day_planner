@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f2ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171614" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Day Plan</title>
+<style>
+:root{
+  --bg:#f5f2ea; --card:#fffdf8; --ink:#22201c; --muted:#78726a; --line:#e4dfd3;
+  --accent:#c2562d; --accent-soft:#f3e2d8; --big:#c2562d; --med:#3d7a6a; --small:#6a5fa8;
+  --warn:#b7791f; --done:#a39d93;
+  --serif: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#171614; --card:#211f1c; --ink:#ece7de; --muted:#9a9388; --line:#34312c;
+    --accent:#e07a50; --accent-soft:#3a2a22; --big:#e07a50; --med:#6cb3a0; --small:#a59be0;
+    --warn:#e0a74a; --done:#6b665e;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans);-webkit-tap-highlight-color:transparent;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+
+header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+header h1{flex:1;margin:0;font:600 1.6rem/1.15 var(--serif);letter-spacing:-.01em}
+header h1 small{display:block;font:500 .8rem var(--sans);color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.nav{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:1.2rem;cursor:pointer}
+.nav:active{transform:scale(.95)}
+#todayBtn{border:none;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:4px 10px;font:600 .75rem var(--sans);cursor:pointer;margin-top:6px}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:14px 0 0}
+.week button{border:1px solid transparent;background:transparent;color:var(--ink);border-radius:10px;padding:6px 0 7px;cursor:pointer;font:500 .7rem var(--sans);display:flex;flex-direction:column;align-items:center;gap:2px}
+.week button b{font:600 1rem var(--sans)}
+.week button .wd{color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.week button.today b{color:var(--accent)}
+.week button.sel{background:var(--card);border-color:var(--line)}
+.week button .pips{height:6px;display:flex;gap:2px}
+.week button .pips i{width:5px;height:5px;border-radius:50%;background:var(--muted);opacity:.55}
+.week button .pips i.open{background:var(--accent);opacity:1}
+.actions input[type=date]{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:5px 8px;font:500 .8rem var(--sans)}
+.progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin:14px 0 4px}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.ptext{font-size:.8rem;color:var(--muted);margin-bottom:18px}
+
+.banner{background:var(--accent-soft);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:.9rem}
+.banner span{flex:1}
+.banner button{border:none;background:var(--accent);color:#fff;border-radius:8px;padding:7px 12px;font:600 .85rem var(--sans);cursor:pointer}
+.banner .x{background:transparent;color:var(--muted);padding:4px 6px}
+
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 10px;margin-bottom:12px}
+section h2{display:flex;align-items:baseline;gap:8px;margin:0 0 8px;font:600 1rem var(--sans)}
+section h2 .dot{width:9px;height:9px;border-radius:50%;align-self:center}
+section h2 .hint{font-weight:400;font-size:.8rem;color:var(--muted)}
+section h2 .count{margin-left:auto;font:600 .8rem var(--sans);color:var(--muted)}
+section h2 .count.over{color:var(--warn)}
+#sec-big .dot{background:var(--big)} #sec-medium .dot{background:var(--med)} #sec-small .dot{background:var(--small)} #sec-later .dot{background:var(--muted)}
+
+ul{list-style:none;margin:0;padding:0}
+li{border-top:1px solid var(--line)}
+li:first-child{border-top:none}
+.row{display:flex;align-items:center;gap:10px;min-height:44px}
+.row input[type=checkbox]{appearance:none;width:22px;height:22px;flex:none;border:2px solid var(--muted);border-radius:6px;cursor:pointer;display:grid;place-items:center;margin:0}
+.row input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.row input[type=checkbox]:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.text{flex:1;padding:8px 0;cursor:text;word-break:break-word}
+li.done .text{color:var(--done);text-decoration:line-through}
+.text input{width:100%;font:inherit;color:inherit;background:transparent;border:none;border-bottom:1px solid var(--accent);outline:none;padding:2px 0}
+.more{border:none;background:transparent;color:var(--muted);font-size:1.2rem;width:36px;height:36px;border-radius:8px;cursor:pointer}
+.more:hover{background:var(--bg)}
+.actions{display:none;gap:6px;flex-wrap:wrap;padding:0 0 10px 32px}
+li.open .actions{display:flex}
+.actions button,.later-btns button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:6px 10px;font:500 .8rem var(--sans);cursor:pointer}
+.actions button.del{color:#c0392b}
+
+.add{display:flex;gap:8px;margin-top:6px}
+.add input{flex:1;min-width:0;font:inherit;color:var(--ink);background:transparent;border:none;border-bottom:1px dashed var(--line);padding:8px 2px;outline:none}
+.add input:focus{border-bottom-color:var(--accent)}
+.add input::placeholder{color:var(--muted)}
+.add button{border:none;background:transparent;color:var(--accent);font:600 1.4rem var(--sans);width:36px;cursor:pointer}
+
+.later-btns{display:flex;gap:4px}
+.later-btns button{padding:5px 8px;font-weight:600}
+.later-btns .b{color:var(--big)} .later-btns .m{color:var(--med)} .later-btns .s{color:var(--small)}
+
+footer{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:24px}
+footer button,footer label{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font:500 .85rem var(--sans);cursor:pointer}
+footer input{display:none}
+.note{text-align:center;font-size:.75rem;color:var(--muted);margin-top:10px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:.9rem;transition:transform .25s,visibility .25s;max-width:90vw;visibility:hidden}
+#toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <button class="nav" id="prev" aria-label="Previous day">‹</button>
+    <h1><small id="weekday"></small><span id="dateText"></span><br><button id="todayBtn" hidden>Back to today</button></h1>
+    <button class="nav" id="next" aria-label="Next day">›</button>
+  </header>
+  <div class="week" id="week"></div>
+  <div class="progress"><i id="bar"></i></div>
+  <div class="ptext" id="ptext"></div>
+
+  <div id="carry"></div>
+
+  <section id="sec-big" data-cat="big">
+    <h2><span class="dot"></span>Big <span class="hint">the one thing that makes the day count</span><span class="count"></span></h2>
+    <ul></ul>
+    <form class="add"><input placeholder="Add big task…" enterkeyhint="done"><button aria-label="Add">+</button></form>
+  </section>
+  <section id="sec-medium" data-cat="medium">
+    <h2><span class="dot"></span>Medium <span class="hint">solid chunks</span><span class="count"></span></h2>
+    <ul></ul>
+    <form class="add"><input placeholder="Add medium task…" enterkeyhint="done"><button aria-label="Add">+</button></form>
+  </section>
+  <section id="sec-small" data-cat="small">
+    <h2><span class="dot"></span>Small <span class="hint">quick wins</span><span class="count"></span></h2>
+    <ul></ul>
+    <form class="add"><input placeholder="Add small task…" enterkeyhint="done"><button aria-label="Add">+</button></form>
+  </section>
+  <section id="sec-later" data-cat="later">
+    <h2><span class="dot"></span>Later <span class="hint">parked, not today</span><span class="count"></span></h2>
+    <ul></ul>
+    <form class="add"><input placeholder="Park something for later…" enterkeyhint="done"><button aria-label="Add">+</button></form>
+  </section>
+
+  <footer>
+    <button id="exportBtn">Export backup</button>
+    <label>Import / merge<input type="file" id="importFile" accept=".json,application/json"></label>
+  </footer>
+  <p class="note" id="note">Saved only in this browser. Use Export / Import to move tasks between devices.</p>
+</div>
+<div id="toast"></div>
+
+<script>
+const KEY = 'dayplan.v1';
+const LIMITS = { big: 1, medium: 3, small: 5 };
+const CATS = ['big', 'medium', 'small'];
+const NAMES = { big: 'Big', medium: 'Medium', small: 'Small' };
+
+const keyOf = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const dateOf = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); };
+const shift = (k, n) => { const d = dateOf(k); d.setDate(d.getDate() + n); return keyOf(d); };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const emptyDay = () => ({ big: [], medium: [], small: [] });
+
+let state = load();
+let cur = keyOf(new Date());
+let dismissedCarry = null;
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && typeof s.days === 'object') return { days: s.days, later: Array.isArray(s.later) ? s.later : [] };
+  } catch (e) {}
+  return { days: {}, later: [] };
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch (e) { document.getElementById('note').textContent = '⚠ This browser is not saving (private mode?). Export a backup before closing.'; }
+}
+const peek = k => state.days[k] || emptyDay();
+const day = k => state.days[k] || (state.days[k] = emptyDay());
+function prune(k) { const d = state.days[k]; if (d && CATS.every(c => !d[c].length)) delete state.days[k]; }
+function commit() { prune(cur); save(); render(); }
+
+function toast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------- rendering ---------- */
+function render() {
+  const d = dateOf(cur), today = keyOf(new Date());
+  document.getElementById('weekday').textContent =
+    (cur === today ? 'Today · ' : cur === shift(today, 1) ? 'Tomorrow · ' : cur === shift(today, -1) ? 'Yesterday · ' : '') +
+    d.toLocaleDateString(undefined, { weekday: 'long' });
+  document.getElementById('dateText').textContent = d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' });
+  document.getElementById('todayBtn').hidden = cur === today;
+
+  const all = CATS.flatMap(c => peek(cur)[c]);
+  const done = all.filter(t => t.done).length;
+  document.getElementById('bar').style.width = all.length ? (done / all.length * 100) + '%' : '0';
+  document.getElementById('ptext').textContent = all.length ? `${done} of ${all.length} done` : 'Nothing planned yet. Start with your one big task.';
+
+  renderWeek(today);
+  CATS.forEach(renderCat);
+  renderLater();
+  renderCarry();
+}
+
+/* Mon–Sun strip for the week of the selected day; pips show tasks (filled = still open) */
+function renderWeek(today) {
+  const d = dateOf(cur), monday = shift(cur, -((d.getDay() + 6) % 7));
+  const strip = document.getElementById('week');
+  strip.replaceChildren(...[0,1,2,3,4,5,6].map(i => {
+    const k = shift(monday, i), dt = dateOf(k), tasks = CATS.flatMap(c => peek(k)[c]);
+    const b = document.createElement('button');
+    if (k === cur) b.classList.add('sel');
+    if (k === today) b.classList.add('today');
+    b.setAttribute('aria-label', dt.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }) + `, ${tasks.length} tasks`);
+    const wd = document.createElement('span'); wd.className = 'wd'; wd.textContent = dt.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2);
+    const num = document.createElement('b'); num.textContent = dt.getDate();
+    const pips = document.createElement('span'); pips.className = 'pips';
+    tasks.slice(0, 5).forEach(t => { const p = document.createElement('i'); if (!t.done) p.className = 'open'; pips.append(p); });
+    b.append(wd, num, pips);
+    b.onclick = () => { cur = k; render(); };
+    return b;
+  }));
+}
+
+function renderCat(cat) {
+  const sec = document.getElementById('sec-' + cat), list = peek(cur)[cat];
+  const count = sec.querySelector('.count');
+  count.textContent = `${list.length}/${LIMITS[cat]}`;
+  count.classList.toggle('over', list.length > LIMITS[cat]);
+  sec.querySelector('.add input').placeholder = list.length >= LIMITS[cat]
+    ? `Full (${LIMITS[cat]}) — park extras in Later` : `Add ${cat} task…`;
+  sec.querySelector('ul').replaceChildren(...list.map(t => taskEl(t, cat)));
+}
+
+function taskEl(t, cat) {
+  const li = document.createElement('li');
+  if (t.done) li.classList.add('done');
+  const row = document.createElement('div'); row.className = 'row';
+  const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!t.done;
+  cb.onchange = () => { t.done = cb.checked; commit(); };
+  const text = document.createElement('div'); text.className = 'text'; text.textContent = t.text;
+  text.onclick = () => editInline(text, t);
+  const more = document.createElement('button'); more.className = 'more'; more.textContent = '⋯'; more.setAttribute('aria-label', 'More');
+  more.onclick = () => li.classList.toggle('open');
+  row.append(cb, text, more);
+
+  const acts = document.createElement('div'); acts.className = 'actions';
+  const btn = (label, fn, cls) => { const b = document.createElement('button'); b.textContent = label; if (cls) b.className = cls; b.onclick = fn; return b; };
+  const pick = document.createElement('input'); pick.type = 'date'; pick.title = 'Move to another day'; pick.setAttribute('aria-label', 'Move to date');
+  pick.onchange = () => { if (pick.value && pick.value !== cur) moveTask(t, cat, pick.value, cat, 'Moved to ' + dateOf(pick.value).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })); };
+  acts.append(
+    btn('→ Next day', () => moveTask(t, cat, shift(cur, 1), cat, 'Moved to the next day')),
+    pick,
+    btn('Park in Later', () => { removeFrom(cur, cat, t); state.later.push({ id: t.id, text: t.text }); commit(); toast('Parked in Later'); }),
+    ...CATS.filter(c => c !== cat).map(c => btn('Make ' + NAMES[c], () => moveTask(t, cat, cur, c))),
+    btn('Delete', () => { removeFrom(cur, cat, t); commit(); }, 'del')
+  );
+  li.append(row, acts);
+  return li;
+}
+
+function editInline(el, item, onDone) {
+  if (el.querySelector('input')) return;
+  const inp = document.createElement('input'); inp.value = item.text;
+  el.replaceChildren(inp); inp.focus();
+  const finish = ok => { const v = inp.value.trim(); if (ok && v) item.text = v; commit(); };
+  inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.onblur = null; render(); } };
+  inp.onblur = () => finish(true);
+}
+
+function removeFrom(k, cat, t) { const d = day(k); d[cat] = d[cat].filter(x => x.id !== t.id); prune(k); }
+function moveTask(t, fromCat, toKey, toCat, msg) {
+  removeFrom(cur, fromCat, t); day(toKey)[toCat].push(t); commit(); if (msg) toast(msg);
+}
+
+function renderLater() {
+  const sec = document.getElementById('sec-later');
+  sec.querySelector('.count').textContent = state.later.length || '';
+  sec.querySelector('ul').replaceChildren(...state.later.map(item => {
+    const li = document.createElement('li');
+    const row = document.createElement('div'); row.className = 'row';
+    const text = document.createElement('div'); text.className = 'text'; text.textContent = item.text;
+    text.onclick = () => editInline(text, item);
+    const btns = document.createElement('div'); btns.className = 'later-btns';
+    [['big', 'B', 'b'], ['medium', 'M', 'm'], ['small', 'S', 's']].forEach(([cat, l, cls]) => {
+      const b = document.createElement('button'); b.textContent = l; b.className = cls; b.title = 'Add to this day as ' + NAMES[cat];
+      b.onclick = () => { state.later = state.later.filter(x => x !== item); day(cur)[cat].push({ id: item.id || uid(), text: item.text, done: false }); commit(); };
+      btns.append(b);
+    });
+    const del = document.createElement('button'); del.className = 'more'; del.textContent = '×'; del.setAttribute('aria-label', 'Delete');
+    del.onclick = () => { state.later = state.later.filter(x => x !== item); commit(); };
+    row.append(text, btns, del); li.append(row); return li;
+  }));
+}
+
+/* Offer to bring over unfinished tasks from the last planned day before this one */
+function renderCarry() {
+  const box = document.getElementById('carry'); box.replaceChildren();
+  if (cur !== keyOf(new Date())) return;
+  const prevKey = Object.keys(state.days).filter(k => k < cur).sort().pop();
+  if (!prevKey || dismissedCarry === prevKey + '>' + cur) return;
+  const open = CATS.flatMap(c => state.days[prevKey][c].filter(t => !t.done).map(t => [c, t]));
+  if (!open.length) return;
+  const label = prevKey === shift(cur, -1) ? 'yesterday' : dateOf(prevKey).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+  const b = document.createElement('div'); b.className = 'banner';
+  b.innerHTML = `<span>${open.length} unfinished from ${label}</span>`;
+  const go = document.createElement('button'); go.textContent = 'Bring over';
+  go.onclick = () => { open.forEach(([c, t]) => { removeFrom(prevKey, c, t); day(cur)[c].push(t); }); commit(); toast('Brought over ' + open.length + ' task' + (open.length > 1 ? 's' : '')); };
+  const x = document.createElement('button'); x.className = 'x'; x.textContent = '✕'; x.setAttribute('aria-label', 'Dismiss');
+  x.onclick = () => { dismissedCarry = prevKey + '>' + cur; renderCarry(); };
+  b.append(go, x); box.append(b);
+}
+
+/* ---------- adding ---------- */
+document.querySelectorAll('section').forEach(sec => {
+  const cat = sec.dataset.cat, form = sec.querySelector('form'), inp = form.querySelector('input');
+  form.onsubmit = e => {
+    e.preventDefault();
+    const v = inp.value.trim(); if (!v) return;
+    if (cat === 'later') state.later.push({ id: uid(), text: v });
+    else day(cur)[cat].push({ id: uid(), text: v, done: false });
+    inp.value = ''; commit();
+    sec.querySelector('.add input').focus();
+  };
+});
+
+/* ---------- navigation ---------- */
+document.getElementById('prev').onclick = () => { cur = shift(cur, -1); render(); };
+document.getElementById('next').onclick = () => { cur = shift(cur, 1); render(); };
+document.getElementById('todayBtn').onclick = () => { cur = keyOf(new Date()); render(); };
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { state = load(); render(); } });
+
+/* ---------- export / import ---------- */
+document.getElementById('exportBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify({ app: 'dayplan', version: 1, exported: new Date().toISOString(), ...state }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dayplan-${keyOf(new Date())}.json`;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+document.getElementById('importFile').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!data || typeof data.days !== 'object') throw 0;
+    let added = 0;
+    for (const [k, d] of Object.entries(data.days)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) continue;
+      for (const c of CATS) for (const t of (d[c] || [])) {
+        if (!t || typeof t.text !== 'string') continue;
+        const target = day(k)[c], existing = target.find(x => x.id === t.id);
+        if (existing) existing.done = existing.done || !!t.done;
+        else { target.push({ id: t.id || uid(), text: t.text, done: !!t.done }); added++; }
+      }
+      prune(k);
+    }
+    for (const t of (data.later || [])) {
+      if (t && typeof t.text === 'string' && !state.later.some(x => x.id === t.id)) { state.later.push({ id: t.id || uid(), text: t.text }); added++; }
+    }
+    commit(); toast(`Merged: ${added} new task${added === 1 ? '' : 's'}`);
+  } catch (err) { toast('That file is not a Day Plan backup'); }
+};
+
+render();
+</script>
+</body>
+</html>
